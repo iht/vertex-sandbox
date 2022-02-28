@@ -30,7 +30,8 @@ def main(query: str,
          pipeline_root: str,
          project_id: str,
          temp_location: str,
-         region: str):
+         region: str,
+         service_account: str):
     # Beam options: project id and a temp location
     beam_args = [f"--project={project_id}", f"--temp_location={temp_location}"]
 
@@ -53,7 +54,7 @@ def main(query: str,
                                                template_path=pipeline_definition,
                                                enable_caching=True)  # only for convenience during development
 
-    job.submit()
+    job.submit(service_account=service_account)
 
 
 if __name__ == '__main__':
@@ -65,6 +66,7 @@ if __name__ == '__main__':
     parser.add_argument("--project-id", required=True)
     parser.add_argument("--temp-location", required=True)
     parser.add_argument("--region", required=True)
+    parser.add_argument("--service-account", required=True)
 
     args = parser.parse_args()
 
@@ -73,4 +75,5 @@ if __name__ == '__main__':
          pipeline_root=args.pipeline_root,
          project_id=args.project_id,
          temp_location=args.temp_location,
-         region=args.region)
+         region=args.region,
+         service_account=args.service_account)

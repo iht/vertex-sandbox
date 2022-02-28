@@ -1,4 +1,4 @@
-python pipeline.py --query="" \
+python pipeline.py --query="SELECT * FROM ihr_live_workshop.transactions" \
   --pipeline-name="ihr-my-pipeline" \
   --pipeline-root="gs://ihr-live-workshop/pipeline/" \
   --project-id="ihr-vertex-pipelines" \

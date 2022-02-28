@@ -15,7 +15,14 @@ def create_pipeline(query: str,
     # Read data from BigQuery
     example_gen: BigQueryExampleGen = tfx.extensions.google_cloud_big_query.BigQueryExampleGen(query=query)
 
-    components = [example_gen]
+    stats_gen = tfx.components.StatisticsGen(examples=example_gen.outputs['examples'])
+
+    schema_gen = tfx.components.SchemaGen(statistics=stats_gen.outputs["statistics"])
+
+    validator = tfx.components.ExampleValidator(statistics=stats_gen.outputs['statistics'],
+                                                schema=schema_gen.outputs["schema"])
+
+    components = [example_gen, stats_gen, schema_gen, validator]
 
     pipeline = tfx.dsl.Pipeline(pipeline_name=pipeline_name,
                                 pipeline_root=pipeline_root,

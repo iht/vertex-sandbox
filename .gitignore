@@ -1,1 +1,4 @@
 *.json
+ .DS_Store
+.idea/
+data/*csv

@@ -4,4 +4,5 @@ python pipeline.py --query="SELECT * FROM ihr_live_workshop.transactions" \
   --project-id="ihr-vertex-pipelines" \
   --temp-location="gs://ihr-live-workshop/tmp/" \
   --region="europe-west4" \
-  --service-account="ihr-vertex-live-workshop@ihr-vertex-pipelines.iam.gserviceaccount.com"
+  --service-account="ihr-vertex-live-workshop@ihr-vertex-pipelines.iam.gserviceaccount.com" \
+  --transform-file="gs://ihr-live-workshop/pipeline/transform.py"

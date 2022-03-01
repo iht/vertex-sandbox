@@ -9,6 +9,8 @@ import tfx.v1 as tfx
 import tensorflow_transform as tft
 from tfx_bsl.public import tfxio
 
+from tensorflow.keras import models
+
 
 def parse_data(location: List[str],
                data_accessor: tfx.components.DataAccessor,
@@ -17,7 +19,11 @@ def parse_data(location: List[str],
     return data_accessor.tf_dataset_factory(
         location,
         tfxio.TensorFlowDatasetOptions(batch_size=batch_size, label_key="Class"),
-        schema=schema).repeat()
+        schema=schema)
+
+
+def build_model() -> models.Model:
+    pass
 
 
 def run_fn(fn_args: FnArgs):
@@ -28,5 +34,9 @@ def run_fn(fn_args: FnArgs):
     tft_output: TFTransformOutput = tft.TFTransformOutput(tft_output_path)
     schema: Schema = tft_output.transformed_metadata.schema
 
+    data_accessor = fn_args.data_accessor
+
     train_files: List[str] = fn_args.train_files
-    eval_file = fn_args.eval_files
+    train_ds = parse_data(train_files, data_accessor, schema, batch_size)
+    eval_files = fn_args.eval_files
+    eval_ds = parse_data(eval_files, data_accessor, schema, batch_size)

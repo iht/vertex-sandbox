@@ -11,7 +11,8 @@ from google.cloud import aiplatform
 def create_pipeline(query: str,
                     pipeline_name: str,
                     pipeline_root: str,
-                    beam_pipeline_args: List[str]) -> tfx.dsl.Pipeline:
+                    beam_pipeline_args: List[str],
+                    transform_file_gcs: str) -> tfx.dsl.Pipeline:
     # Read data from BigQuery
     example_gen: BigQueryExampleGen = tfx.extensions.google_cloud_big_query.BigQueryExampleGen(query=query)
 
@@ -22,7 +23,11 @@ def create_pipeline(query: str,
     validator = tfx.components.ExampleValidator(statistics=stats_gen.outputs['statistics'],
                                                 schema=schema_gen.outputs["schema"])
 
-    components = [example_gen, stats_gen, schema_gen, validator]
+    transform = tfx.components.Transform(examples=example_gen.outputs['examples'],
+                                         schema=schema_gen.outputs['schema'],
+                                         module_file=transform_file_gcs)
+
+    components = [example_gen, stats_gen, schema_gen, validator, transform]
 
     pipeline = tfx.dsl.Pipeline(pipeline_name=pipeline_name,
                                 pipeline_root=pipeline_root,
@@ -38,14 +43,16 @@ def main(query: str,
          project_id: str,
          temp_location: str,
          region: str,
-         service_account: str):
+         service_account: str,
+         transform_file_gcs: str):
     # Beam options: project id and a temp location
     beam_args = [f"--project={project_id}", f"--temp_location={temp_location}"]
 
     p = create_pipeline(query=query,
                         pipeline_root=pipeline_root,
                         pipeline_name=pipeline_name,
-                        beam_pipeline_args=beam_args)
+                        beam_pipeline_args=beam_args,
+                        transform_file_gcs=transform_file_gcs)
 
     # Create the runner
     pipeline_definition = pipeline_name + "_pipeline.json"
@@ -74,6 +81,7 @@ if __name__ == '__main__':
     parser.add_argument("--temp-location", required=True)
     parser.add_argument("--region", required=True)
     parser.add_argument("--service-account", required=True)
+    parser.add_argument("--transform-file", required=True)
 
     args = parser.parse_args()
 
@@ -83,4 +91,5 @@ if __name__ == '__main__':
          project_id=args.project_id,
          temp_location=args.temp_location,
          region=args.region,
-         service_account=args.service_account)
+         service_account=args.service_account,
+         transform_file_gcs=args.transform_file)

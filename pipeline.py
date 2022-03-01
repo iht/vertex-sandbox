@@ -7,12 +7,18 @@ from tfx.extensions.google_cloud_big_query.example_gen.component import BigQuery
 
 from google.cloud import aiplatform
 
+BATCH_SIZE = 4096
+DATASET_SIZE = 284807
+
 
 def create_pipeline(query: str,
                     pipeline_name: str,
                     pipeline_root: str,
                     beam_pipeline_args: List[str],
-                    transform_file_gcs: str) -> tfx.dsl.Pipeline:
+                    transform_file_gcs: str,
+                    trainer_file_gcs: str,
+                    region: str,
+                    project_id: str) -> tfx.dsl.Pipeline:
     # Read data from BigQuery
     example_gen: BigQueryExampleGen = tfx.extensions.google_cloud_big_query.BigQueryExampleGen(query=query)
 
@@ -27,7 +33,28 @@ def create_pipeline(query: str,
                                          schema=schema_gen.outputs['schema'],
                                          module_file=transform_file_gcs)
 
-    components = [example_gen, stats_gen, schema_gen, validator, transform]
+    vertex_config = {
+        'project': project_id,
+        'worker_pool_specs': [[{'machine_spec': {'machine_type': 'n1-standard-4'},
+                                'replica_count': 1,
+                                'container_spec': {'image_uri': f'gcr.io/tfx-oss-public/tfx:{tfx.__version__}'}
+                                }]]
+    }
+
+    trainer = tfx.extensions.google_cloud_ai_platform.Trainer(
+        examples=transform.outputs['transformed_examples'],
+        transform_graph=transform.outputs['transform_graph'],  # only for schema and other handy stuff
+        train_args=tfx.proto.TrainArgs(num_steps=50),
+        module_file=trainer_file_gcs,
+        custom_config={
+            tfx.extensions.google_cloud_ai_platform.ENABLE_VERTEX_KEY: True,
+            tfx.extensions.google_cloud_ai_platform.VERTEX_REGION_KEY: region,
+            tfx.extensions.google_cloud_ai_platform.TRAINING_ARGS_KEY: vertex_config,
+            "batch-size": BATCH_SIZE,
+            "dataset-size": DATASET_SIZE
+        })
+
+    components = [example_gen, stats_gen, schema_gen, validator, transform, trainer]
 
     pipeline = tfx.dsl.Pipeline(pipeline_name=pipeline_name,
                                 pipeline_root=pipeline_root,
@@ -44,7 +71,8 @@ def main(query: str,
          temp_location: str,
          region: str,
          service_account: str,
-         transform_file_gcs: str):
+         transform_file_gcs: str,
+         trainer_file_gcs: str):
     # Beam options: project id and a temp location
     beam_args = [f"--project={project_id}", f"--temp_location={temp_location}"]
 
@@ -52,7 +80,10 @@ def main(query: str,
                         pipeline_root=pipeline_root,
                         pipeline_name=pipeline_name,
                         beam_pipeline_args=beam_args,
-                        transform_file_gcs=transform_file_gcs)
+                        transform_file_gcs=transform_file_gcs,
+                        trainer_file_gcs=trainer_file_gcs,
+                        region=region,
+                        project_id=project_id)
 
     # Create the runner
     pipeline_definition = pipeline_name + "_pipeline.json"
@@ -82,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument("--region", required=True)
     parser.add_argument("--service-account", required=True)
     parser.add_argument("--transform-file", required=True)
+    parser.add_argument("--trainer-file", required=True)
 
     args = parser.parse_args()
 
@@ -92,4 +124,5 @@ if __name__ == '__main__':
          temp_location=args.temp_location,
          region=args.region,
          service_account=args.service_account,
-         transform_file_gcs=args.transform_file)
+         transform_file_gcs=args.transform_file,
+         trainer_file_gcs=args.trainer_file)

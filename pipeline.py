@@ -56,6 +56,8 @@ def create_pipeline(query: str,
 
     vertex_endpoint_config = {
         'project': project_id,
+        'tensorboard': f'projects/237148598933/locations/{region}/tensorboards/3834463238985089024',
+        'service_account': 'ihr-tensorboard@ihr-vertex-pipelines.iam.gserviceaccount.com',
         'endpoint_name': "live-workshop",
         'machine_type': 'n1-standard-4'
     }

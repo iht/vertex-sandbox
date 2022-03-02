@@ -54,7 +54,24 @@ def create_pipeline(query: str,
             "dataset-size": DATASET_SIZE
         })
 
-    components = [example_gen, stats_gen, schema_gen, validator, transform, trainer]
+    vertex_endpoint_config = {
+        'project': project_id,
+        'endpoint_name': "live-workshop",
+        'machine_type': 'n1-standard-4'
+    }
+    container_image_uri = "europe-docker.pkg.dev/vertex-ai/prediction/tf2-cpu.2-7:latest"
+
+    pusher = tfx.extensions.google_cloud_ai_platform.Pusher(
+        model=trainer.outputs["model"],
+        custom_config={
+            tfx.extensions.google_cloud_ai_platform.ENABLE_VERTEX_KEY: True,
+            tfx.extensions.google_cloud_ai_platform.VERTEX_REGION_KEY: region,
+            tfx.extensions.google_cloud_ai_platform.VERTEX_CONTAINER_IMAGE_URI_KEY: container_image_uri,
+            tfx.extensions.google_cloud_ai_platform.SERVING_ARGS_KEY: vertex_endpoint_config
+        }
+    )
+
+    components = [example_gen, stats_gen, schema_gen, validator, transform, trainer, pusher]
 
     pipeline = tfx.dsl.Pipeline(pipeline_name=pipeline_name,
                                 pipeline_root=pipeline_root,

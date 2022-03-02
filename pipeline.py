@@ -39,7 +39,7 @@ def create_pipeline(query: str,
         'tensorboard': f'projects/237148598933/locations/{region}/tensorboards/3834463238985089024',
         'service_account': 'ihr-tensorboard@ihr-vertex-pipelines.iam.gserviceaccount.com',
         'base_output_directory': {
-                 'output_uri_prefix': temp_location,  # required for Tensorboard
+                 'output_uri_prefix': temp_location,  # required for Tensorboard. THIS SHOULD NOT BE PROBABLY A TEMP FILE
             },
         'worker_pool_specs': [{'machine_spec': {'machine_type': 'n1-standard-4'},
                                'replica_count': 1,

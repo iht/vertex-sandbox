@@ -35,10 +35,10 @@ def create_pipeline(query: str,
 
     vertex_config = {
         'project': project_id,
-        'worker_pool_specs': [[{'machine_spec': {'machine_type': 'n1-standard-4'},
-                                'replica_count': 1,
-                                'container_spec': {'image_uri': f'gcr.io/tfx-oss-public/tfx:{tfx.__version__}'}
-                                }]]
+        'worker_pool_specs': [{'machine_spec': {'machine_type': 'n1-standard-4'},
+                               'replica_count': 1,
+                               'container_spec': {'image_uri': f'gcr.io/tfx-oss-public/tfx:{tfx.__version__}'}
+                               }]
     }
 
     trainer = tfx.extensions.google_cloud_ai_platform.Trainer(

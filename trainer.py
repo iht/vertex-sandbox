@@ -26,7 +26,7 @@ def parse_data(location: List[str],
     return data_accessor.tf_dataset_factory(
         location,
         tfxio.TensorFlowDatasetOptions(batch_size=batch_size, label_key="Class"),
-        schema=schema)
+        schema=schema).repeat()
 
 
 def build_model(feature_names: List[str]) -> models.Model:
@@ -82,7 +82,7 @@ def run_fn(fn_args: FnArgs):
           callbacks=[tb_callback])
 
     # Metrics for the hypertuner
-    loss, accuracy = m.evaluate(eval_ds)
+    loss, accuracy = m.evaluate(eval_ds, steps=num_batches_validation)
     # I could (and should) calculate more metrics:
     # precision and recall, area under PR curve
     # TODO: how to pass this to the hypertuner

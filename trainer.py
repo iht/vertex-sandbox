@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Dict
 
 from tensorflow_metadata.proto.v0.schema_pb2 import Schema
@@ -71,7 +72,8 @@ def run_fn(fn_args: FnArgs):
     num_batches_train = dataset_size * (2/3) // batch_size
     num_batches_validation = dataset_size * (1/3) // batch_size
 
-    tb_callback = callbacks.TensorBoard(log_dir=fn_args.model_run_dir, histogram_freq=1)
+    logs_dir = os.environ.get('AIP_TENSORBOARD_LOG_DIR')
+    tb_callback = callbacks.TensorBoard(log_dir=logs_dir, histogram_freq=1)
 
     m = build_model(feature_names)
     m.fit(train_ds,

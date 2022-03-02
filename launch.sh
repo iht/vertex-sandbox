@@ -1,4 +1,5 @@
 gsutil cp transform.py gs://ihr-live-workshop/pipeline/transform.py
+gsutil cp trainer.py gs://ihr-live-workshop/pipeline/trainer.py
 
 python pipeline.py --query="SELECT * FROM ihr_live_workshop.transactions" \
   --pipeline-name="ihr-my-pipeline" \
@@ -7,4 +8,5 @@ python pipeline.py --query="SELECT * FROM ihr_live_workshop.transactions" \
   --temp-location="gs://ihr-live-workshop/tmp/" \
   --region="europe-west4" \
   --service-account="ihr-vertex-live-workshop@ihr-vertex-pipelines.iam.gserviceaccount.com" \
-  --transform-file="gs://ihr-live-workshop/pipeline/transform.py"
+  --transform-file="gs://ihr-live-workshop/pipeline/transform.py" \
+  --trainer-file="gs://ihr-live-workshop/pipeline/trainer.py"

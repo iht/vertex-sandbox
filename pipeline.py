@@ -18,7 +18,8 @@ def create_pipeline(query: str,
                     transform_file_gcs: str,
                     trainer_file_gcs: str,
                     region: str,
-                    project_id: str) -> tfx.dsl.Pipeline:
+                    project_id: str,
+                    temp_location: str) -> tfx.dsl.Pipeline:
     # Read data from BigQuery
     example_gen: BigQueryExampleGen = tfx.extensions.google_cloud_big_query.BigQueryExampleGen(query=query)
 
@@ -37,6 +38,9 @@ def create_pipeline(query: str,
         'project': project_id,
         'tensorboard': f'projects/237148598933/locations/{region}/tensorboards/3834463238985089024',
         'service_account': 'ihr-tensorboard@ihr-vertex-pipelines.iam.gserviceaccount.com',
+        'base_output_directory': {
+                 'output_uri_prefix': temp_location,  # required for Tensorboard
+            },
         'worker_pool_specs': [{'machine_spec': {'machine_type': 'n1-standard-4'},
                                'replica_count': 1,
                                'container_spec': {'image_uri': f'gcr.io/tfx-oss-public/tfx:{tfx.__version__}'}
@@ -102,7 +106,8 @@ def main(query: str,
                         transform_file_gcs=transform_file_gcs,
                         trainer_file_gcs=trainer_file_gcs,
                         region=region,
-                        project_id=project_id)
+                        project_id=project_id,
+                        temp_location=temp_location)
 
     # Create the runner
     pipeline_definition = pipeline_name + "_pipeline.json"
